@@ -172,10 +172,33 @@ def getLowPriceArr(symbol,nYear):
     return arr;
 
 
+#获取 各年份卖点占比、平均卖点占比
+def getSellPercent(arr,price):
+    arr  = arr;
+    arr2 = [1,1.4,1.8,2.2,2.6,3];
+    arr3 = [
+        round( price/(arr[0]*(1+arr2[0])),3),
+        round( price/(arr[1]*(1+arr2[1])),3),
+        round( price/(arr[2]*(1+arr2[2])),3),
+        round( price/(arr[3]*(1+arr2[3])),3),
+        round( price/(arr[4]*(1+arr2[4])),3),
+        round( price/(arr[5]*(1+arr2[5])),3)
+    ]
+    avg = round( (arr3[0]+arr3[1]+arr3[2]+arr3[3]+arr3[4]+arr3[5])/6 , 3);
+    return [arr3,avg];
 
 
-arr = getLowPriceArr('SZ000550',6);
+
+
+arr = getLowPriceArr('SH600637',6);
 print(arr)
+
+arr2 = getSellPercent(arr,20.2)
+print(arr2)
+
+
+
+
 #getAllData();
 
 #获取数据的总长度
