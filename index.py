@@ -98,14 +98,13 @@ def getAllData(page=0):
         getAllData(page);
 
 
-#某个股 N 年内每天价格信息
+#某个股 N年内 每天价格集合
 def getStockDetail(url,config,symbol,nYear):
 
     _year     = nYear;
     _interval = int(_year * 31536000 * 1000);
     _end      = int(time.time() * 1000);  #坑 一定要转成整数，否者后来都会是float类型
     _begin    = _end - _interval;
-
 
     _headers = {
         "User-Agent":userAgent,
@@ -117,34 +116,38 @@ def getStockDetail(url,config,symbol,nYear):
     _params = _params+'&end='+ str(_end);
     _params = _params+'&begin='+ str(_begin);
 
-
     res = requests.get(url=url,params=_params,headers=_headers)
     return res.text;
 
 
-#低点
-def getLowPriceArr(symbol):
-    lows = [];
-    stockInfo = getStockDetail(stockAPI,config2,symbol,6);
-    data = Payload(stockInfo);
-    arr  = data.chartlist;
-
+#某个股 第N年内 最低点
+def getLowPrice(symbol,nth):
+    lows = []
+    stockInfo = getStockDetail(stockAPI,config2,symbol,nth);
+    arr = Payload(stockInfo).chartlist;
 
     for one in arr:
         low = one['low'];  
         lows.append(low);
-    l = len(arr); #数据总数
-    print(l)
-    n = int(l/6); #一年内的数据个数
-    m6 = sorted(lows)[:1];
-    m5 = sorted(lows[n:])[:1];
-    m4 = sorted(lows[2*n:])[:1];
-    m3 = sorted(lows[3*n:])[:1];
-    m2 = sorted(lows[4*n:])[:1];
-    m1 = sorted(lows[5*n:])[:1];
-    return [m1[0],m2[0],m3[0],m4[0],m5[0],m6[0]];
 
-arr = getLowPriceArr('SZ000550');
+    m = sorted(lows)[:1];
+    return m[0];
+
+
+#获取 N年内 每一年的低点，以数组返回
+def getLowPriceArr(symbol,nYear):
+    total = nYear;
+    arr   = []
+    while nYear>0:
+        low = getLowPrice(symbol,total+1-nYear);
+        nYear = nYear-1;
+        arr.append(low)
+    return arr;
+
+
+
+
+arr = getLowPriceArr('SZ000550',6);
 print(arr)
 #getAllData();
 
