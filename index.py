@@ -52,9 +52,11 @@ stockArr = [];
 
 #股票类
 class Stock:
-    def __init__(self, name=0, symbol=1):
-        self.name = name
-        self.symbol = symbol
+    def __init__(self, name=0, symbol=1,lows=[],percents=[]):
+        self.name     = name
+        self.symbol   = symbol
+        self.lows     = lows
+        self.percents = percents
 
 
 #解析json
@@ -88,19 +90,25 @@ def getAllData(page=0,stockArr=[]):
         page = 1;
     else:
         page = page+1;
-        #获取一页的数据
+        #处理一页中，各个股票的数据
         for one in arr:
             name = one['name']; 
             symbol = one['symbol']; 
 
+            #非常核心的数据提炼部分
+            lows     = getLowPriceArr(symbol,6);
+            percents = getSellPercent(lows);
 
-            # arr = getLowPriceArr('SH600637',6);
-            # print(arr)
+            #完成一个完整的股票分析
+            oneStock = Stock(name,symbol,lows,percents);
 
-            # arr2 = getSellPercent(arr)
-            # print(arr2)
-
-            stockArr.append(Stock(name,symbol));
+            #屏幕输出
+            print(oneStock.name)
+            print(oneStock.lows)
+            print(oneStock.percents)
+            print('-------------------------------------')
+            
+            stockArr.append(oneStock);
        
     if page<=totalPages:
         getAllData(page,stockArr);
@@ -195,23 +203,22 @@ def getLowPriceArr(symbol,nYear):
 def getSellPercent(arr):
 
     #低点价格数组
-    arr   = arr[0];
+    lowArr   = arr[0];
     #最近一天的收盘价格
     price = arr[1];
-    
-    arr2  = [1,1.4,1.8,2.2,2.6,3];
-    arr3  = [
-        round( price/(arr[0]*(1+arr2[0])),3),
-        round( price/(arr[1]*(1+arr2[1])),3),
-        round( price/(arr[2]*(1+arr2[2])),3),
-        round( price/(arr[3]*(1+arr2[3])),3),
-        round( price/(arr[4]*(1+arr2[4])),3),
-        round( price/(arr[5]*(1+arr2[5])),3)
+
+    percentArr  = [
+        round( price/(lowArr[0]*2  ),3),
+        round( price/(lowArr[1]*2.4),3),
+        round( price/(lowArr[2]*2.8),3),
+        round( price/(lowArr[3]*3.2),3),
+        round( price/(lowArr[4]*3.6),3),
+        round( price/(lowArr[5]*4  ),3)
     ]
-    avg = round( (arr3[0]+arr3[1]+arr3[2]+arr3[3]+arr3[4]+arr3[5])/6 , 3);
+    avg = round( (percentArr[0]+percentArr[1]+percentArr[2]+percentArr[3]+percentArr[4]+percentArr[5])/6 , 3);
 
     #最终输出的最要数据
-    return [arr3,avg];
+    return [percentArr,avg];
 
 
 
