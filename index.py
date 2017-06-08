@@ -128,6 +128,9 @@ def getLowPrice(symbol,nth):
     stockInfo = getStockDetail(stockAPI,config2,symbol,nth);
     arr = Payload(stockInfo).chartlist;
 
+    #令最近一天的收盘价格作为最新价格，来分析用
+    newClosePrice = arr[-1]["close"];
+
     for one in arr:
         low = one['low'];  
         lows.append(low);
@@ -136,17 +139,18 @@ def getLowPrice(symbol,nth):
 
     #这里返回最低点、和总数据条数
     #总数据条数 会用来判断，这个股票是否不足六年（比如第4年和第3年数据一样多，说明其实不存在第四年的数据！）
-    return [m[0],len(arr)];  
+    #[最低点，数据条数，最近一天的收盘价格]
+    return [m[0],len(arr),newClosePrice];  
 
 
 #调整数据
-#比如有数据为：[[18.91, 241], [18.91, 486], [11.11, 732], [10.51, 732], [9.68, 732], [9.68, 732]]
+#比如有数据为：[[18.91, 241,20], [18.91, 486,20], [11.11, 732,20], [10.51, 732,20], [9.68, 732,20], [9.68, 732,20]]
 #从第4年开始数据长度就没有发生改变了，就说明不存在第四年的数据，后面的年份就更加不存在了，要调整数据为：
-#调整目标数据为：[[18.91, 241], [18.91, 486], [11.11, 732], [0, 732], [0, 732], [0, 732]]
-#进一步提取为：[18.91, 18.91, 11.11, 0, 0, 0]
+#调整目标数据为：[[18.91, 241,20], [18.91, 486,20], [11.11, 732,20], [0, 732,20], [0, 732,20], [0, 732,20]]
+#进一步提取为：[ [18.91, 18.91, 11.11, 0, 0, 0],20 ]
 def modData(arr):
 
-    #arr = [[18.91, 241], [18.91, 486], [11.11, 732], [10.51, 732], [9.68, 732], [9.68, 732]];
+    #arr = [[18.91, 241,20], [18.91, 486,20], [11.11, 732,20], [10.51, 732,20], [9.68, 732,20], [9.68, 732,20]];
     newArr = [];
     length = len(arr);
     for i in range(0,length-1):
@@ -156,7 +160,9 @@ def modData(arr):
 
     for i in range(0,length):
         newArr.append(arr[i][0]);
-    return newArr;
+
+    #[低点价格数组，最近一天的收盘价格]
+    return [newArr,arr[0][2]];
 
 
 #获取 N年内 每一年的低点，以数组返回
@@ -168,15 +174,23 @@ def getLowPriceArr(symbol,nYear):
         nYear = nYear-1;
         arr.append(low)
 
+    #提炼数据
     arr = modData(arr);
+
+    #[低点价格数组，最近一天的收盘价格]
     return arr;
 
 
 #获取 各年份卖点占比、平均卖点占比
-def getSellPercent(arr,price):
-    arr  = arr;
-    arr2 = [1,1.4,1.8,2.2,2.6,3];
-    arr3 = [
+def getSellPercent(arr):
+
+    #低点价格数组
+    arr   = arr[0];
+    #最近一天的收盘价格
+    price = arr[1];
+    
+    arr2  = [1,1.4,1.8,2.2,2.6,3];
+    arr3  = [
         round( price/(arr[0]*(1+arr2[0])),3),
         round( price/(arr[1]*(1+arr2[1])),3),
         round( price/(arr[2]*(1+arr2[2])),3),
@@ -185,6 +199,8 @@ def getSellPercent(arr,price):
         round( price/(arr[5]*(1+arr2[5])),3)
     ]
     avg = round( (arr3[0]+arr3[1]+arr3[2]+arr3[3]+arr3[4]+arr3[5])/6 , 3);
+
+    #最终输出的最要数据
     return [arr3,avg];
 
 
@@ -193,16 +209,14 @@ def getSellPercent(arr,price):
 arr = getLowPriceArr('SH600637',6);
 print(arr)
 
-arr2 = getSellPercent(arr,20.2)
+arr2 = getSellPercent(arr)
 print(arr2)
 
 
 
+#获取所有处理完毕的数据
+getAllData();
 
-#getAllData();
-
-#获取数据的总长度
-#print(len(stockArr))
 
 
 
