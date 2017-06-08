@@ -116,6 +116,8 @@ def getStockDetail(url,config,symbol,nYear):
     _params = _params+'&end='+ str(_end);
     _params = _params+'&begin='+ str(_begin);
 
+    #print(_params)
+
     res = requests.get(url=url,params=_params,headers=_headers)
     return res.text;
 
@@ -131,17 +133,42 @@ def getLowPrice(symbol,nth):
         lows.append(low);
 
     m = sorted(lows)[:1];
-    return m[0];
+
+    #这里返回最低点、和总数据条数
+    #总数据条数 会用来判断，这个股票是否不足六年（比如第4年和第3年数据一样多，说明其实不存在第四年的数据！）
+    return [m[0],len(arr)];  
+
+
+#调整数据
+#比如有数据为：[[18.91, 241], [18.91, 486], [11.11, 732], [10.51, 732], [9.68, 732], [9.68, 732]]
+#从第4年开始数据长度就没有发生改变了，就说明不存在第四年的数据，后面的年份就更加不存在了，要调整数据为：
+#调整目标数据为：[[18.91, 241], [18.91, 486], [11.11, 732], [0, 732], [0, 732], [0, 732]]
+#进一步提取为：[18.91, 18.91, 11.11, 0, 0, 0]
+def modData(arr):
+
+    #arr = [[18.91, 241], [18.91, 486], [11.11, 732], [10.51, 732], [9.68, 732], [9.68, 732]];
+    newArr = [];
+    length = len(arr);
+    for i in range(0,length-1):
+        if arr[i][1]==arr[i+1][1]:
+            #不存在的年份用-999填空，为何不是0呢？因为0不好区分，这中情况可是正常存在的，包括出现 -4 这样子也是合理的（因为前赋权）
+            arr[i+1][0] = -999;  
+
+    for i in range(0,length):
+        newArr.append(arr[i][0]);
+    return newArr;
 
 
 #获取 N年内 每一年的低点，以数组返回
 def getLowPriceArr(symbol,nYear):
     total = nYear;
-    arr   = []
+    arr   = [];
     while nYear>0:
         low = getLowPrice(symbol,total+1-nYear);
         nYear = nYear-1;
         arr.append(low)
+
+    arr = modData(arr);
     return arr;
 
 
