@@ -76,7 +76,7 @@ def getScreenerData(url,config,page):
 
 
 #递归获取全部数据
-def getAllData(page=0):
+def getAllData(page=0,stockArr=[]):
     json = getScreenerData(screenerAPI,config,page);
     data = Payload(json);
     arr  = data.list;
@@ -92,10 +92,20 @@ def getAllData(page=0):
         for one in arr:
             name = one['name']; 
             symbol = one['symbol']; 
+
+
+            # arr = getLowPriceArr('SH600637',6);
+            # print(arr)
+
+            # arr2 = getSellPercent(arr)
+            # print(arr2)
+
             stockArr.append(Stock(name,symbol));
        
     if page<=totalPages:
-        getAllData(page);
+        getAllData(page,stockArr);
+
+    return stockArr;
 
 
 #某个股 N年内 每天价格集合
@@ -206,16 +216,10 @@ def getSellPercent(arr):
 
 
 
-arr = getLowPriceArr('SH600637',6);
-print(arr)
-
-arr2 = getSellPercent(arr)
-print(arr2)
-
-
 
 #获取所有处理完毕的数据
-getAllData();
+stockArr = getAllData();
+print(len(stockArr))
 
 
 
